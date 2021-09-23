@@ -1,7 +1,16 @@
 from numpy.lib.function_base import average
 import pandas as pd
 import numpy as np
+# from statsmodels.stats.outliers_influence import variance_inflation_factor
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
+
+def group_pos(df, new_col_name, col_group):
+    df[new_col_name] = 0
+    for col in col_group:
+        df[new_col_name] += round((df[col]/len(col_group)), 1)
+    return df
 
 def random_attributes(attr):
     attr_split = attr.split("+")
@@ -55,6 +64,7 @@ def club_rank(club_name, club_overall_dict):
             rank = 3
     return rank
 
+
 def preprocess_release_clause(df):
     # This function replaced NAN value in release clause with the average release clause 
     # of players with the same rating.
@@ -74,7 +84,7 @@ def preprocess_release_clause(df):
 
     for i, (ovr, price) in enumerate(zip(overall, clause_list)):
         if price == -1:
-            clause_list[i] = str("€"+str(average_clause_rating[ovr])+"M")
+            clause_list[i] = str("L"+str(average_clause_rating[ovr])+"M")
     df = df.drop(['Release Clause'], axis = 1)
     df['Release Clause'] = clause_list
     df['Release Clause'] = df['Release Clause'].apply(convert_to_million)
@@ -89,9 +99,33 @@ if __name__ == "__main__":
     # Columns to drop due to irrelavance
     # We drop Potential since it is unconvincing to predict overall rating when given potential rating
     # We drop Loaned_from due to too many NULL value from the dataset
-    position_list = ['LS', "ST", "RS", "LW", "LF", "CF", "RF", "RW", "LAM", "CAM", "RAM", 
+    position_list = ["LS", "ST", "RS", "LW", "LF", "CF", "RF", "RW", "LAM", "CAM", "RAM", 
                     "LM", "LCM", "CM", "RCM", "RM", "LWB", "LDM", "CDM", "RDM", 
                     "RWB", "LB", "LCB", "CB", "RCB", "RB"]
+
+    goalie = ['GK']
+    defense_list = ['LWB', 'LB', 'LCB', 'CB', 'RCB', 'RB']
+    mid_list = ['LAM', 'CAM', 'RAM', 'LM', 'LCM', 'CM', 'RCM', 'RM', 'LDM', 'CDM', 'RDM', 'RW', 'LW']
+    forward_list = ["LS", "ST", "RS", "LF", "CF", "RF"]
+
+    # TODO: Save to json/yaml file for convenience
+    attribute_group_dict = {
+        "Pace": ["Acceleration", "SprintSpeed"],
+        "Dribble": ["Agility", "Balance", "BallControl", "Composure", "Dribbling", "Reactions"],
+        "Shoot": ["Finishing", "LongShots", "Penalties", "Positioning", "ShotPower", "Volleys", "FKAccuracy"],
+        "Defense": ["HeadingAccuracy", "Interceptions", "Marking", "SlidingTackle", "StandingTackle"],
+        "Pass": ["Crossing", "Curve", "FKAccuracy", "LongPassing", "ShortPassing", "Vision"],
+        "Physical": ["Aggression", "Jumping", "Stamina", "Strength"],
+        "Technical": ["Finishing", "LongShots", "Penalties", "ShotPower", "Volleys", 
+                "Crossing", "Curve", "FKAccuracy", "LongPassing", "ShortPassing", "BallControl", 
+                "Dribbling", "HeadingAccuracy", "Marking", "SlidingTackle", "StandingTackle"],
+        "Mental": ["Positioning", "Vision", "Composure", "Interceptions", "Aggression"],
+        "Physical": ["Acceleration", "SprintSpeed", "Agility", "Balance", "Reactions", "Jumping", "Stamina", "Strength"],
+        "Goalkeeping_rating": ["GKDiving", "GKHandling", "GKKicking", "GKPositioning", "GKReflexes"],
+        "Defensive_rating": ['LWB', 'LB', 'LCB', 'CB', 'RCB', 'RB'],
+        "Midfielder_rating": ['LAM', 'CAM', 'RAM', 'LM', 'LCM', 'CM', 'RCM', 'RM', 'LDM', 'CDM', 'RDM', 'RW', 'LW'],
+        "Offensive_rating": ["LS", "ST", "RS", "LF", "CF", "RF"]
+    }
 
     # Fill NaN position for GK
     # We put NaN as O+0 for the sake of consistency
@@ -104,9 +138,6 @@ if __name__ == "__main__":
     label_df = label_df.fillna(position_fill)
     # Coach
     label_df = label_df.dropna(subset=['Position'])
-
-    # Fill NaN release clause based rating
-    label_df = preprocess_release_clause(label_df)
 
     # Reformat Wage and Value
     label_df["Wage"] = label_df["Wage"].apply(convert_to_million)
@@ -150,11 +181,41 @@ if __name__ == "__main__":
     # Work Rate
     label_df["Work Rate"] = label_df["Work Rate"].apply(work_rate)
 
-    # TODO: Sort nationality based on ranking
-    # TODO: Preprocess attributes for position group? (Divide into groups or ...)
-    # Correlation Matrix
+    # Group attributes
+    for k, v in attribute_group_dict.items():
+        label_df = group_pos(label_df, k, v)
 
-    dropped_list = ['Unnamed: 0', 'Name', 'Club', 'Photo', 'Flag', 'Club Logo', 'Real Face',
-                    'Body Type', 'Potential', 'Jersey Number', 'Loaned From', 'Joined']
-    label_df = label_df.drop(columns=dropped_list)
+    # TODO: Sort nationality based on ranking
+    # Temporariy delete column nationality from table
+
+    # Position Group:
+    # 0: Defense, 1: Midfielder, 2: FW
+    # label_df["Position Group"] = label_df["Position"].apply(position_group)
+
+    # Temporarily factorize specific position
+    position_df, pos_index = pd.factorize(label_df["Position"].to_list())
+    label_df = label_df.drop(['Position'], axis = 1)
+    label_df['Position'] = position_df
+
+    position_index = {}
+    for i, p in enumerate(pos_index):
+        position_index[p] = i
+    
+    keep_cols = ["Age", "Overall", "Position", "Value", "Wage", "Special", "International Reputation", "Weak Foot", "Skill Moves", "Work Rate",
+                "Height", "Weight", "Release Clause", "Club_ranking", "Pace", "Dribble", "Shoot", "Defense", "Pass", "Physical",
+                "Technical", "Mental", "Goalkeeping_rating", "Defensive_rating", "Midfielder_rating", "Offensive_rating"]
+    label_df = label_df[keep_cols]
+
+    # Fill NaN release clause based rating
+    label_df = preprocess_release_clause(label_df)
+    
+    # Simple Correlation matrix
+    corr = label_df.corr()
+    corr.to_csv("./correlation.csv", index=True)
     label_df.to_csv("./data_fifa_19.csv", index=False)
+
+    # Split train_val
+    train, val = train_test_split(label_df, test_size=0.2, random_state=3042, shuffle=True)
+
+    train.to_csv("./train.csv", index=False)
+    val.to_csv("./val.csv", index=False)
