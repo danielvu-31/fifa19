@@ -1,64 +1,89 @@
 # Import libraries
 import lightgbm as lgb
-from sklearn.svm import SVR
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
 from sklearn import metrics
-from Loader import Loader
+import yaml
+import json
+import os
+from joblib import dump
 
 class Trainer():
-    def __init__(self, loader):
+    def __init__(self, loader, best_config_path, ckpt_folder):
         self.loader = loader
+        with open(best_config_path) as file:
+            self.param_config = yaml.load(file, Loader=yaml.FullLoader)
+        # Hyperparam tuner class
+        self.model_init = {
+            "decision_tree": {
+                "model": DecisionTreeRegressor(),
+                "one_hot": True
+                },
+            "random_forest": {
+                "model": RandomForestRegressor(),
+                "one_hot": True
+                },
+            "extra_tree": {
+                "model": ExtraTreeRegressor(),
+                "one_hot": True
+                },
+            "extra_tree": {
+                "model": lgb.LGBMRegressor(),
+                "one_hot": False
+                }
+        }
 
-    def train_xgboost(self, model):
-        train, val = self.loader.prepare_train(False)
-        lgb_train = lgb.Dataset(train.drop(["Overall"], axis=1), train["Overall"])
-        lgb_val = lgb.Dataset(val.drop(["Overall"], axis=1), val["Overall"], reference=lgb_train)
+        if not os.path.exists(self.ckpt_folder):
+            os.makedirs(self.ckpt_folder)
+        self.ckpt_folder = ckpt_folder
 
-        params = {'boosting_type': 'gbdt',
-                    'objective': 'regression',
-                    'num_leaves': 40,
-                    'learning_rate': 0.1,
-                    'feature_fraction': 0.9
-                    }
+    def _init_config(self, model_name, tuning_type):
+        assert f"{model_name}_{tuning_type}" in self.param_config.keys()
 
-        gbm = lgb.train(params,
-                        lgb_train,
-                        num_boost_round=200,
-                        valid_sets=[lgb_train, lgb_val],
-                        valid_names=['train','valid'],
-                        categorical_feature=self.loader.cat_var
-                        )
+        best_param = self.param_config[f"{model_name}_{tuning_type}"]
+        model = self.model_init[model_name]["model"]
+        format_cat = self.model_init[model_name]["one_hot"]
+
+        for k, v in best_param:
+            setattr(model, k, v)
+
+        train, val = self.loader.prepare_train(format_cat)
+        train = [train.drop(["Overall"], axis=1), train["Overall"]]
+        val = [val.drop(["Overall"], axis=1), val["Overall"]]
+
+        return model, (train, val)
     
-    def train_decision_regressor(self, model):
-        train, val = self.loader.prepare_train(True)
-        x_train, y_train = train.drop(["Overall"], axis=1), train["Overall"]
-        x_val, y_val = val.drop(["Overall"], axis=1), val["Overall"]
+    def _train_best(self, model_name, tuning_type):
+        print(f"Fitting {model_name} Model....")
+        model, (train, val) = self._init_config(model_name, tuning_type)
 
+        model.fit(train[0], train[1])
 
-# def auc2(m, train, test): 
-#     return (metrics.roc_auc_score(y_train,m.predict(train)),
-#                             metrics.roc_auc_score(y_test,m.predict(test)))
+        print(f"Validating {model_name} Model....")
+        y_pred = model.predict(val[0])
+        result ={
+            "l2": metrics.mean_squared_error(val[1], y_pred),
+            "abs_error": metrics.mean_absolute_error(val[1], y_pred)
+        }
 
-# lg = lgb.LGBMClassifier(silent=False)
-# param_dist = {"max_depth": [25,50, 75],
-#               "learning_rate" : [0.01,0.05,0.1],
-#               "num_leaves": [300,900,1200],
-#               "n_estimators": [200]
-#              }
-# grid_search = GridSearchCV(lg, n_jobs=-1, param_grid=param_dist, cv = 3, scoring="roc_auc", verbose=5)
-# grid_search.fit(train,y_train)
-# grid_search.best_estimator_
+        print("Results:\t\tL2: {.2f}\t\tMAE: {.2f}".format(result["l2"], result["abs_error"]))
 
-# d_train = lgb.Dataset(train, label=y_train)
-# params = {"max_depth": 50, "learning_rate" : 0.1, "num_leaves": 900,  "n_estimators": 300}
+        # Save model ckpt
+        path = os.path.join(self.ckpt_folder, f"{model_name}_{tuning_type}_ckpt.joblibs")
+        dump(model, path) 
+        # Save json file
+        self._save_output(model_name, tuning_type, result, path)
+    
+    def _save_output(self, model_name, tuning, result, path):
+        output = {
+            "name": model_name,
+            "tuning_type": tuning,
+            "results": result,
+            "ckpt_path": path
+        }
 
-# # Without Categorical Features
-# model2 = lgb.train(params, d_train)
-# auc2(model2, train, test)
+        # Dump json output
+        json_path = os.path.join(self.ckpt_folder, f"{model_name}_{tuning}_results.json")
+        with open(json_path, "w") as outfile:
+            json.dump(output, outfile)
 
-# #With Catgeorical Features
-# cate_features_name = ["MONTH","DAY","DAY_OF_WEEK","AIRLINE","DESTINATION_AIRPORT",
-#                  "ORIGIN_AIRPORT"]
-# model2 = lgb.train(params, d_train, categorical_feature = cate_features_name)
-# auc2(model2, train, test)

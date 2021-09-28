@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 import json
 
@@ -149,6 +148,8 @@ class Loader():
         for i, p in enumerate(pos_index):
             position_index[p] = i
         
+        print(position_index)
+
         self.attribute_group["Position_index"] = position_index
         self.label_df = self.label_df[self.attribute_group["Keep"]]
 

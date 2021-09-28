@@ -1,3 +1,3 @@
-from .hypertuning import HyperParamTuning
+from .hypertuning import HyperParamTuning, init_dict
 
-__all__ = ['HyperParamTuning']
+__all__ = ['HyperParamTuning', 'init_dict']
