@@ -78,7 +78,7 @@ class HyperParamTuning():
             searcher = TuneGridSearchCV(estimator=model,
                                         param_grid=tuned_params,
                                         scoring="neg_mean_absolute_error",
-                                        verbose=2,
+                                        verbose=1,
                                         mode="max",
                                         max_iters=10,
                                         n_trials=1000,
@@ -88,7 +88,7 @@ class HyperParamTuning():
                                     search_optimization=tuning_type,
                                     param_distributions=tuned_params,
                                     scoring="neg_mean_absolute_error",
-                                    verbose=2,
+                                    verbose=1,
                                     mode="max",
                                     max_iters=50,
                                     n_trials=1000,
@@ -107,12 +107,13 @@ class HyperParamTuning():
     def save_output(self, name, fixed_param, best_tuned_param):
         if os.path.exists(os.path.join(self.result_path, "best_params.json")):
             f = open(os.path.join(self.result_path, "best_params.json"), "r+")
-            params_group = json.load(f)
+            config = json.loads(f)
         else:
             f = open(os.path.join(self.result_path, "best_params.json"), "w")
-            params_group = {}
-        params_group[name] = {**fixed_param, **best_tuned_param}
-        json.dump(params_group, f)
+            config = {}
+        update = {name: {**fixed_param, **best_tuned_param}}
+        config.update(update)
+        json.dumps(config, f)
         f.close()
 
     
