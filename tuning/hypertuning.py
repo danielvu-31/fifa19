@@ -81,6 +81,7 @@ class HyperParamTuning():
                                         verbose=2,
                                         mode="min",
                                         max_iters=10,
+                                        n_trials=100,
                                         use_gpu=self.gpu)
         else:
             searcher = TuneSearchCV(estimator=model,
@@ -89,7 +90,8 @@ class HyperParamTuning():
                                     scoring="neg_mean_absolute_error",
                                     verbose=2,
                                     mode="min",
-                                    max_iters=10,
+                                    max_iters=50,
+                                    n_trials=100,
                                     use_gpu=self.gpu)
         # train[0]: x_train
         # train[1]: y_train
@@ -105,9 +107,10 @@ class HyperParamTuning():
     def save_output(self, name, fixed_param, best_tuned_param):
         if os.path.exists(os.path.join(self.result_path, "best_params.json")):
             f = open(os.path.join(self.result_path, "best_params.json"), "r+")
+            params_group = json.load(f)
         else:
             f = open(os.path.join(self.result_path, "best_params.json"), "w")
-        params_group = json.load(f)
+            params_group = {}
         params_group[name] = {**fixed_param, **best_tuned_param}
         json.dump(params_group, f)
         f.close()
