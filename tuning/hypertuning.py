@@ -79,9 +79,9 @@ class HyperParamTuning():
                                         param_grid=tuned_params,
                                         scoring="neg_mean_absolute_error",
                                         verbose=2,
-                                        mode="min",
+                                        mode="max",
                                         max_iters=10,
-                                        n_trials=100,
+                                        n_trials=1000,
                                         use_gpu=self.gpu)
         else:
             searcher = TuneSearchCV(estimator=model,
@@ -89,9 +89,9 @@ class HyperParamTuning():
                                     param_distributions=tuned_params,
                                     scoring="neg_mean_absolute_error",
                                     verbose=2,
-                                    mode="min",
+                                    mode="max",
                                     max_iters=50,
-                                    n_trials=100,
+                                    n_trials=1000,
                                     use_gpu=self.gpu)
         # train[0]: x_train
         # train[1]: y_train
