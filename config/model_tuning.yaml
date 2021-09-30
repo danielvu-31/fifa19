@@ -2,8 +2,8 @@ lightgbm:
   one_hot: False
   tuning: bohb
   fixed_params:
+    device: cpu
     boosting_type: gbdt
-    objective: regression
     metric: l2
     early_stopping_rounds: 100
   tuned_params:
