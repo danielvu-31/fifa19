@@ -128,7 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-*.csv
+data/data_final.csv
+data/train.csv
+data/val.csv
 *.Rmd
 *.ipynb
 ray_results/

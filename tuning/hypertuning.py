@@ -81,7 +81,6 @@ class HyperParamTuning():
                                         param_grid=tuned_params,
                                         scoring="neg_mean_absolute_error",
                                         verbose=0,
-                                        mode="max",
                                         n_trials=100,
                                         use_gpu=self.gpu,
                                         loggers=["tensorboard"],
@@ -92,7 +91,6 @@ class HyperParamTuning():
                                     param_distributions=tuned_params,
                                     scoring="neg_mean_absolute_error",
                                     verbose=0,
-                                    mode="max",
                                     n_trials=100,
                                     use_gpu=self.gpu,
                                     loggers=["tensorboard"],
@@ -117,7 +115,10 @@ class HyperParamTuning():
             config = {}
         update = {name: {**fixed_param, **best_tuned_param}}
         config.update(update)
-        json.dumps(config, f)
+        # Append to current json file
+        f.seek(0)
+        f.write(json.dumps(config))
+        f.truncate()
         f.close()
 
     
