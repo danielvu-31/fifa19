@@ -9,6 +9,6 @@ if __name__ == '__main__':
     result = "tune_result"
     ray_folder = "ray_results"
     dataloader = Loader(folder_path=data_folder, split_pct=0.2, save=True)
-    tuner = HyperParamTuning(tune_config_path, result, ray_folder, dataloader)
+    tuner = HyperParamTuning(tune_config_path, result, ray_folder, dataloader, False)
     tuner.tuning("lightgbm")
 
