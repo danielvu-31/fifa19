@@ -1,18 +1,19 @@
 import os
 import json
-import sys
 import yaml
 import lightgbm as lgb
 import xgboost as xgb
 
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
-import ray.tune as tune
-from ray.tune.integration.lightgbm import TuneReportCheckpointCallback
+import ray
+
 from tune_sklearn import TuneSearchCV, TuneGridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
 
+
+ray.init(log_to_driver=False)
 
 def init_dict(nested_dictionary):
     for key, value in nested_dictionary.items():
@@ -28,7 +29,7 @@ def init_dict(nested_dictionary):
 
 
 class HyperParamTuning():
-    def __init__(self, tuning_config_path, result_path, loader, gpu=False):
+    def __init__(self, tuning_config_path, result_path, ray_folder, loader, gpu=False):
         self.result_path = result_path
         with open(tuning_config_path) as file:
             tuning_config = yaml.load(file, Loader=yaml.FullLoader)
@@ -42,6 +43,7 @@ class HyperParamTuning():
         }
         self.loader = loader
         self.gpu = gpu
+        self.ray_folder = ray_folder
     
     def _init_config(self, model_name):
         model = self.model_init[model_name]
@@ -78,21 +80,25 @@ class HyperParamTuning():
             searcher = TuneGridSearchCV(estimator=model,
                                         param_grid=tuned_params,
                                         scoring="neg_mean_absolute_error",
-                                        verbose=1,
+                                        verbose=0,
                                         mode="max",
-                                        max_iters=10,
-                                        n_trials=1000,
-                                        use_gpu=self.gpu)
+                                        max_iters=50,
+                                        n_trials=100,
+                                        use_gpu=self.gpu,
+                                        loggers=["tensorboard"],
+                                        local_dir=self.ray_folder)
         else:
             searcher = TuneSearchCV(estimator=model,
                                     search_optimization=tuning_type,
                                     param_distributions=tuned_params,
                                     scoring="neg_mean_absolute_error",
-                                    verbose=1,
+                                    verbose=0,
                                     mode="max",
                                     max_iters=50,
-                                    n_trials=1000,
-                                    use_gpu=self.gpu)
+                                    n_trials=100,
+                                    use_gpu=self.gpu,
+                                    loggers=["tensorboard"],
+                                    local_dir=self.ray_folder)
         # train[0]: x_train
         # train[1]: y_train
         searcher.fit(train[0], train[1], **args)

@@ -1,0 +1,34 @@
+lightgbm:
+  one_hot: False
+  tuning: bohb
+  fixed_params:
+    boosting_type: gbdt
+    objective: regression
+    metric: l2
+    early_stopping_rounds: 100
+  tuned_params:
+    n_estimators: CSH.UniformIntegerHyperparameter(name='n_estimators',
+                                                   lower=1,
+                                                   upper=5000,
+                                                   log=False)
+    learning_rate: CSH.UniformFloatHyperparameter(name='learning_rate',
+                                                  lower=1e-8,
+                                                  upper=1e-1,
+                                                  log=True)
+    num_leaves: CSH.UniformIntegerHyperparameter(name='num_leaves',
+                                                 lower=1,
+                                                 upper=6000,
+                                                 log=False)
+    max_depth: CSH.UniformIntegerHyperparameter(name='max_depth',
+                                                lower=1,
+                                                upper=20,
+                                                log=False)
+    feature_fraction: CSH.CategoricalHyperparameter('feature_fraction', choices=[0.9, 1.0])
+    num_iterations: CSH.UniformIntegerHyperparameter(name='num_iterations',
+                                                     lower=1,
+                                                     upper=200,
+                                                     log=False)
+    max_bin: CSH.UniformIntegerHyperparameter(name='max_bin',
+                                              lower=200,
+                                              upper=300,
+                                              log=False)

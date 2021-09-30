@@ -42,7 +42,6 @@ class Loader():
         for i in null_stats.keys():
             if len(self.label_df[self.label_df[i].isnull()==True]) > 0:
                 null_stats[i] = len(self.label_df[self.label_df[i].isnull()==True])
-        print(null_stats)
         return null_stats
 
     def init_club_rank(self):
@@ -70,7 +69,7 @@ class Loader():
 
         average_clause_rating = {rating: 0 for rating in list(set(self.label_df['Overall'].to_list()))}
         for rating in average_clause_rating.keys():
-            average_clause_rating[rating] = round(df_rm_nan_clause[df_rm_nan_clause["Overall"] == rating]["Release Clause"].mean().item(), 
+            average_clause_rating[rating] = round(df_rm_nan_clause[df_rm_nan_clause["Overall"] == rating]["Release Clause"].mean(), 
                                                 1)
         
         clause_list = self.label_df['Release Clause'].to_list()
@@ -147,8 +146,6 @@ class Loader():
         position_index = {}
         for i, p in enumerate(pos_index):
             position_index[p] = i
-        
-        print(position_index)
 
         self.attribute_group["Position_index"] = position_index
         self.label_df = self.label_df[self.attribute_group["Keep"]]
