@@ -1,0 +1,1 @@
+{"name": "lightgbm", "tuning_type": "bohb", "results": {"l2": 0.2382272037407451, "abs_error": 0.33891553715216166}, "ckpt_path": "best_ckpt/lightgbm_bohb_ckpt.joblibs"}

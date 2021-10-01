@@ -12,7 +12,7 @@ class Trainer():
     def __init__(self, loader, best_config_path, ckpt_folder):
         self.loader = loader
         with open(best_config_path) as file:
-            self.param_config = yaml.load(file, Loader=yaml.FullLoader)
+            self.param_config = json.load(file)
         # Hyperparam tuner class
         self.model_init = {
             "decision_tree": {
@@ -27,15 +27,15 @@ class Trainer():
                 "model": ExtraTreeRegressor(),
                 "one_hot": True
                 },
-            "extra_tree": {
+            "lightgbm": {
                 "model": lgb.LGBMRegressor(),
                 "one_hot": False
                 }
         }
 
+        self.ckpt_folder = ckpt_folder
         if not os.path.exists(self.ckpt_folder):
             os.makedirs(self.ckpt_folder)
-        self.ckpt_folder = ckpt_folder
 
     def _init_config(self, model_name, tuning_type):
         assert f"{model_name}_{tuning_type}" in self.param_config.keys()
@@ -44,7 +44,7 @@ class Trainer():
         model = self.model_init[model_name]["model"]
         format_cat = self.model_init[model_name]["one_hot"]
 
-        for k, v in best_param:
+        for k, v in best_param.items():
             setattr(model, k, v)
 
         train, val = self.loader.prepare_train(format_cat)
@@ -65,8 +65,8 @@ class Trainer():
             "l2": metrics.mean_squared_error(val[1], y_pred),
             "abs_error": metrics.mean_absolute_error(val[1], y_pred)
         }
-
-        print("Results:\t\tL2: {.2f}\t\tMAE: {.2f}".format(result["l2"], result["abs_error"]))
+        print("Results:\t\tL2: {:.3f}\t\tMAE: {:.3f}".format(float(result["l2"]),
+                                                            float(result["abs_error"])))
 
         # Save model ckpt
         path = os.path.join(self.ckpt_folder, f"{model_name}_{tuning_type}_ckpt.joblibs")

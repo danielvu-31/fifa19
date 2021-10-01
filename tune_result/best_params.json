@@ -1,0 +1,1 @@
+{"lightgbm_bohb": {"device": "cpu", "boosting_type": "gbdt", "metric": "l2", "early_stopping_rounds": 100, "feature_fraction": 0.9, "learning_rate": 0.059498766483670834, "max_bin": 213, "max_depth": 17, "n_estimators": 1125, "num_iterations": 171, "num_leaves": 176}}
