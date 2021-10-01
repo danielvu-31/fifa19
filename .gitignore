@@ -133,4 +133,5 @@ data/train.csv
 data/val.csv
 *.Rmd
 *.ipynb
+*.joblibs
 ray_results/

@@ -16,7 +16,7 @@ lightgbm:
                                                   upper=1e-1,
                                                   log=True)
     num_leaves: CSH.UniformIntegerHyperparameter(name='num_leaves',
-                                                 lower=1,
+                                                 lower=2,
                                                  upper=6000,
                                                  log=False)
     max_depth: CSH.UniformIntegerHyperparameter(name='max_depth',

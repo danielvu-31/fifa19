@@ -9,7 +9,7 @@ lightgbm:
   tuned_params:
     n_estimators: (1, 8000)
     learning_rate: (1e-8, 1e-1)
-    num_leaves: (1, 6000)
+    num_leaves: (2, 6000)
     max_depth: (1, 20)
     feature_fraction: [0.9, 1.0]
     num_iterations: (1, 200)
