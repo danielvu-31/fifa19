@@ -15,6 +15,9 @@ if __name__ == '__main__':
 
 
     dataloader = Loader(folder_path=args.data_folder, split_pct=0.2, save=True)
-    tuner = HyperParamTuning(args.tune_config_path, args.tune_result, args.ray_results, dataloader)
+    tuner = HyperParamTuning(args.tune_config_path,
+                            args.tune_result,
+                            args.ray_results,
+                            dataloader)
     tuner.tuning(args.model)
 

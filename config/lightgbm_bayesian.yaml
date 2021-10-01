@@ -7,34 +7,16 @@ lightgbm:
     metric: l2
     early_stopping_rounds: 100
   tuned_params:
-    n_estimators: CSH.UniformIntegerHyperparameter(name='n_estimators',
-                                                   lower=1,
-                                                   upper=10000,
-                                                   log=False)
-    learning_rate: CSH.UniformFloatHyperparameter(name='learning_rate',
-                                                  lower=1e-8,
-                                                  upper=1e-1,
-                                                  log=True)
-    num_leaves: CSH.UniformIntegerHyperparameter(name='num_leaves',
-                                                 lower=1,
-                                                 upper=6000,
-                                                 log=False)
-    max_depth: CSH.UniformIntegerHyperparameter(name='max_depth',
-                                                lower=1,
-                                                upper=20,
-                                                log=False)
-    feature_fraction: CSH.CategoricalHyperparameter('feature_fraction', choices=[0.9, 1.0])
-    num_iterations: CSH.UniformIntegerHyperparameter(name='num_iterations',
-                                                     lower=1,
-                                                     upper=200,
-                                                     log=False)
-    max_bin: CSH.UniformIntegerHyperparameter(name='max_bin',
-                                              lower=200,
-                                              upper=300,
-                                              log=False)
+    n_estimators: (1, 8000)
+    learning_rate: (1e-8, 1e-1)
+    num_leaves: (1, 6000)
+    max_depth: (1, 20)
+    feature_fraction: [0.9, 1.0]
+    num_iterations: (1, 200)
+    max_bin: (200, 300)
   tunesearch:
     early_stopping: True
-    n_trials: 500
+    n_trials: 1000
     max_iters: 10
     search_optimization: "bayesian"
     use_gpu: True
