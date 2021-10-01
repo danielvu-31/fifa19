@@ -1,4 +1,4 @@
-import argsparse
+import argparse
 
 from tuning import HyperParamTuning
 from loader import Loader
@@ -15,6 +15,6 @@ if __name__ == '__main__':
 
 
     dataloader = Loader(folder_path=args.data_folder, split_pct=0.2, save=True)
-    tuner = HyperParamTuning(args.tune_config_path, args.result, args.ray_folder, dataloader)
+    tuner = HyperParamTuning(args.tune_config_path, args.tune_result, args.ray_results, dataloader)
     tuner.tuning(args.model)
 
