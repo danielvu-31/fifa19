@@ -29,7 +29,7 @@ def init_dict(nested_dictionary):
 
 
 class HyperParamTuning():
-    def __init__(self, tuning_config_path, result_path, ray_folder, loader, gpu=False):
+    def __init__(self, tuning_config_path, result_path, ray_folder, loader):
         self.result_path = result_path
         with open(tuning_config_path) as file:
             tuning_config = yaml.load(file, Loader=yaml.FullLoader)
@@ -42,7 +42,6 @@ class HyperParamTuning():
             "xgboost": xgb.XGBRegressor(random_state=42)
         }
         self.loader = loader
-        self.gpu = gpu
         self.ray_folder = ray_folder
     
     def _init_config(self, model_name):
@@ -71,32 +70,27 @@ class HyperParamTuning():
             cs = CS.ConfigurationSpace(seed=42)
             for k, v in tuned_params.items():
                 cs.add_hyperparameter(v)
-                print(f"Add: {k} to ConfigSpace")
             tuned_params = cs
 
         args = self._extend_cat_arg(model_name)
         print(tuned_params)
+
+        tune_args = self.tuning_config[model_name]["tunesearch"]
         if tuning_type == "gridsearch":
             searcher = TuneGridSearchCV(estimator=model,
                                         param_grid=tuned_params,
                                         scoring="neg_mean_absolute_error",
-                                        verbose=0,
-                                        n_trials=100,
-                                        use_gpu=self.gpu,
                                         loggers=["tensorboard"],
-                                        local_dir=self.ray_folder)
+                                        local_dir=self.ray_folder,
+                                        **tune_args)
         else:
             searcher = TuneSearchCV(estimator=model,
-                                    search_optimization=tuning_type,
                                     param_distributions=tuned_params,
                                     scoring="neg_mean_absolute_error",
-                                    verbose=0,
-                                    n_trials=100,
-                                    use_gpu=self.gpu,
                                     loggers=["tensorboard"],
-                                    local_dir=self.ray_folder)
-        # train[0]: x_train
-        # train[1]: y_train
+                                    local_dir=self.ray_folder,
+                                    **tune_args)
+
         searcher.fit(train[0], train[1], **args)
 
         # Write best config to json

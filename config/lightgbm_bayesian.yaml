@@ -1,6 +1,6 @@
 lightgbm:
   one_hot: False
-  tuning: bohb
+  tuning: bayesian
   fixed_params:
     device: cpu
     boosting_type: gbdt
@@ -9,7 +9,7 @@ lightgbm:
   tuned_params:
     n_estimators: CSH.UniformIntegerHyperparameter(name='n_estimators',
                                                    lower=1,
-                                                   upper=5000,
+                                                   upper=10000,
                                                    log=False)
     learning_rate: CSH.UniformFloatHyperparameter(name='learning_rate',
                                                   lower=1e-8,
@@ -32,3 +32,10 @@ lightgbm:
                                               lower=200,
                                               upper=300,
                                               log=False)
+  tunesearch:
+    early_stopping: True
+    n_trials: 500
+    max_iters: 10
+    search_optimization: "bayesian"
+    use_gpu: True
+    verbose: 1
