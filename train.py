@@ -1,5 +1,4 @@
 import argparse
-
 from loader import Loader
 from trainer import Trainer
 

@@ -16,7 +16,7 @@ lightgbm:
     max_bin: (200, 300)
   tunesearch:
     early_stopping: True
-    n_trials: 1000
+    n_trials: 500
     max_iters: 10
     search_optimization: "bayesian"
     use_gpu: True
