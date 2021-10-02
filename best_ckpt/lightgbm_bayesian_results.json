@@ -1,0 +1,1 @@
+{"name": "lightgbm", "tuning_type": "bayesian", "results": {"l2": 0.2333761790897346, "abs_error": 0.33151643454933954}, "ckpt_path": "best_ckpt/lightgbm_bayesian_ckpt.joblibs"}
