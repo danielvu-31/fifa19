@@ -65,15 +65,27 @@ class Trainer():
         args = self._extend_cat_arg(model_name)
 
         model.fit(train[0], train[1], **args)
+        y_train = model.predict(train[0])
+        train_result ={
+            "l2": metrics.mean_squared_error(train[1], y_train),
+            "abs_error": metrics.mean_absolute_error(train[1], y_train),
+            "r2": metrics.r2_score(train[1], y_train)
+        }
+        print("Train Results:")
+        print("  - L2: {:.3f}".format(float(train_result["l2"])))
+        print("  - MAE: {:.3f}".format(float(train_result["abs_error"])))                                                       
+        print("  - R2: {:.3f}".format(float(train_result["r2"])))
 
-        print(f"Validating {model_name} Model....")
         y_pred = model.predict(val[0])
         result ={
             "l2": metrics.mean_squared_error(val[1], y_pred),
-            "abs_error": metrics.mean_absolute_error(val[1], y_pred)
+            "abs_error": metrics.mean_absolute_error(val[1], y_pred),
+            "r2": metrics.r2_score(val[1], y_pred)
         }
-        print("Results:\t\tL2: {:.3f}\t\tMAE: {:.3f}".format(float(result["l2"]),
-                                                            float(result["abs_error"])))
+        print("Validation Results:")
+        print("  - L2: {:.3f}".format(float(result["l2"])))
+        print("  - MAE: {:.3f}".format(float(result["abs_error"])))                                                       
+        print("  - R2: {:.3f}".format(float(result["r2"])))
 
         # Save model ckpt
         path = os.path.join(self.ckpt_folder, f"{model_name}_{tuning_type}_ckpt.joblibs")

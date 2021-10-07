@@ -1,1 +1,1 @@
-{"name": "lightgbm", "tuning_type": "bohb", "results": {"l2": 0.23112338462185894, "abs_error": 0.33482114464777213}, "ckpt_path": "best_ckpt/lightgbm_bohb_ckpt.joblibs"}
+{"name": "lightgbm", "tuning_type": "bohb", "results": {"l2": 0.38779227776600833, "abs_error": 0.39813622864301657, "r2": 0.9920248056293267}, "ckpt_path": "best_ckpt/lightgbm_bohb_ckpt.joblibs"}
